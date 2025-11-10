@@ -1,18 +1,37 @@
-name: Build ACME App
+name: Build & Push (DEV)
 
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: eu-west-1
+  CODEARTIFACT_DOMAIN: acme-domain
+  CODEARTIFACT_REPOSITORY: acme-maven-dev
+  ECR_REPOSITORY: 638946561387.dkr.ecr.eu-west-1.amazonaws.com/acme-app-service    # değiştir (ECR repo URI)
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
-    env:
-      AWS_REGION: eu-west-1
-      REPO_NAME: acme-maven-dev
-    steps:
-      - uses: actions/checkout@v4
+    permissions:
+      contents: read
+      id-token: write
 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 1) Maven cache -> hız için
+      - name: Cache Maven local repo
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # 2) Configure AWS creds (use least privilege creds stored in secrets)
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -20,18 +39,39 @@ jobs:
           aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Get CodeArtifact Token & Endpoint
+      # 3) Login to CodeArtifact (writes ~/.m2/settings.xml with token)
+      - name: Login to CodeArtifact (maven)
         run: |
-          echo CODEARTIFACT_MAVEN_URL=$(aws codeartifact get-repository-endpoint \
-            --domain acme-domain \
-            --repository ${REPO_NAME} \
-            --format maven \
-            --query repositoryEndpoint --output text) >> $GITHUB_ENV
+          aws codeartifact login --tool maven \
+            --domain ${CODEARTIFACT_DOMAIN} \
+            --repository ${CODEARTIFACT_REPOSITORY} \
+            --region ${AWS_REGION}
 
-          echo CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token \
-            --domain acme-domain \
-            --region ${AWS_REGION} \
-            --query authorizationToken --output text) >> $GITHUB_ENV
+      # 4) (Optional) show first lines of settings.xml for debugging (no token exposed)
+      - name: Debug: settings.xml head
+        run: sed -n '1,120p' ~/.m2/settings.xml || true
 
-      - name: Build
-        run: mvn -B -Pdev -s settings.xml clean package -DskipTests
+      # 5) Resolve dependencies (fast-fail & visible)
+      - name: Resolve Maven deps (debug)
+        run: mvn -B -Pdev -s ~/.m2/settings.xml dependency:resolve -U
+
+      # 6) Build JAR on runner (uses local settings.xml created by codeartifact login)
+      - name: Build (maven package)
+        run: mvn -B -Pdev -s ~/.m2/settings.xml -DskipTests clean package
+
+      # 7) Login to ECR & build image (copy produced JAR)
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            ${{ steps.ecr-login.outputs.registry }}/acme-app-service:${{ github.sha }}
+            ${{ steps.ecr-login.outputs.registry }}/acme-app-service:dev-latest
+          build-args: |
+            # pass build args if needed
