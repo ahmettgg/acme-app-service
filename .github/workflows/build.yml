@@ -42,7 +42,7 @@ jobs:
       # 3) Login to CodeArtifact (writes ~/.m2/settings.xml with token)
       - name: Login to CodeArtifact (maven)
         run: |
-          aws codeartifact login --tool maven \
+          aws codeartifact login --tool mvn \
             --domain ${CODEARTIFACT_DOMAIN} \
             --repository ${CODEARTIFACT_REPOSITORY} \
             --region ${AWS_REGION}
