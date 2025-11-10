@@ -48,7 +48,7 @@ jobs:
             --region ${AWS_REGION}
 
       # 4) (Optional) show first lines of settings.xml for debugging (no token exposed)
-      - name: Debug: settings.xml head
+      - name: "Debug: settings.xml head"
         run: sed -n '1,120p' ~/.m2/settings.xml || true
 
       # 5) Resolve dependencies (fast-fail & visible)
