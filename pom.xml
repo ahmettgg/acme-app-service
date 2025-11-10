@@ -6,6 +6,14 @@
 
   <modelVersion>4.0.0</modelVersion>
 
+  <!-- parent ile Spring Boot dependencyManagement sağlanır -->
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.3.4</version>
+    <relativePath/> <!-- lookup parent from repository -->
+  </parent>
+
   <groupId>com.acme</groupId>
   <artifactId>acme-app-service</artifactId>
   <version>0.0.1-SNAPSHOT</version>
@@ -15,35 +23,47 @@
 
   <properties>
     <java.version>17</java.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <dependencies>
+    <!-- Spring Boot starter; version yönetimi parent tarafından sağlanır -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
 
-    <!-- ✅ CodeArtifact'ten çekilecek client -->
+    <!-- acme-shared-client (CodeArtifact'ten çekilecek) -->
     <dependency>
       <groupId>com.acme</groupId>
       <artifactId>acme-shared-client</artifactId>
       <version>1.0.0-dev-SNAPSHOT</version>
     </dependency>
 
-    <!-- Spring Boot starter -->
+    <!-- test scope örneği -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
     </dependency>
-
   </dependencies>
 
-  <!-- ✅ profile tanımı -->
+  <!-- Profil bazlı repo ayarları (CI'da -Pdev kullan) -->
   <profiles>
-
     <profile>
       <id>dev</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
 
       <repositories>
         <repository>
           <id>codeartifact</id>
           <url>${env.CODEARTIFACT_MAVEN_URL}</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>true</enabled></snapshots>
         </repository>
       </repositories>
 
@@ -53,16 +73,16 @@
           <url>${env.CODEARTIFACT_MAVEN_URL}</url>
         </pluginRepository>
       </pluginRepositories>
-
     </profile>
 
     <profile>
       <id>prod</id>
-
       <repositories>
         <repository>
           <id>codeartifact</id>
           <url>${env.CODEARTIFACT_MAVEN_URL}</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>false</enabled></snapshots>
         </repository>
       </repositories>
 
@@ -73,7 +93,25 @@
         </pluginRepository>
       </pluginRepositories>
     </profile>
-
   </profiles>
+
+  <build>
+    <plugins>
+      <!-- Spring Boot maven plugin (run / package için) -->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.10.1</version>
+        <configuration>
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.target}</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
