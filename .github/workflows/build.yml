@@ -9,7 +9,7 @@ env:
   AWS_REGION: eu-west-1
   CODEARTIFACT_DOMAIN: acme-domain
   CODEARTIFACT_REPOSITORY: acme-maven-dev
-  ECR_REPOSITORY: 638946561387.dkr.ecr.eu-west-1.amazonaws.com/acme-app-service    # değiştir (ECR repo URI)
+  ECR_REPOSITORY: 638946561387.dkr.ecr.eu-west-1.amazonaws.com/acme-app-service
 
 jobs:
   build-and-push:
@@ -73,5 +73,3 @@ jobs:
           tags: |
             ${{ steps.ecr-login.outputs.registry }}/acme-app-service:${{ github.sha }}
             ${{ steps.ecr-login.outputs.registry }}/acme-app-service:dev-latest
-          build-args: |
-            # pass build args if needed
