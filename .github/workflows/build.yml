@@ -11,18 +11,18 @@ env:
   CODEARTIFACT_REPOSITORY: acme-maven-dev
   ECR_REPOSITORY: 638946561387.dkr.ecr.eu-west-1.amazonaws.com/acme-app-service
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 1) Maven cache -> hız için
       - name: Cache Maven local repo
         uses: actions/cache@v4
         with:
@@ -31,7 +31,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # 2) Configure AWS creds (use least privilege creds stored in secrets)
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -39,27 +38,43 @@ jobs:
           aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # 3) Login to CodeArtifact (writes ~/.m2/settings.xml with token)
-      - name: Login to CodeArtifact (maven)
+      - name: Get CodeArtifact auth token and Maven repo endpoint
+        id: codeartifact-info
+        shell: bash
         run: |
-          aws codeartifact login --tool mvn \
-            --domain ${CODEARTIFACT_DOMAIN} \
-            --repository ${CODEARTIFACT_REPOSITORY} \
-            --region ${AWS_REGION}
+          set -euo pipefail
 
-      # 4) (Optional) show first lines of settings.xml for debugging (no token exposed)
-      - name: "Debug: settings.xml head"
-        run: sed -n '1,120p' ~/.m2/settings.xml || true
+          echo "Getting CodeArtifact auth token (will NOT be printed)..."
+          AUTH_TOKEN=$(aws codeartifact get-authorization-token \
+            --domain "${CODEARTIFACT_DOMAIN}" \
+            --query authorizationToken --output text --region "${AWS_REGION}")
 
-      # 5) Resolve dependencies (fast-fail & visible)
-      - name: Resolve Maven deps (debug)
-        run: mvn -B -Pdev -s ~/.m2/settings.xml dependency:resolve -U
+          echo "Getting CodeArtifact maven repository endpoint..."
+          REPO_URL=$(aws codeartifact get-repository-endpoint \
+            --domain "${CODEARTIFACT_DOMAIN}" \
+            --repository "${CODEARTIFACT_REPOSITORY}" \
+            --format maven \
+            --query repositoryEndpoint --output text --region "${AWS_REGION}")
 
-      # 6) Build JAR on runner (uses local settings.xml created by codeartifact login)
+          # Export to subsequent steps (do not echo token)
+          echo "CODEARTIFACT_AUTH_TOKEN=$AUTH_TOKEN" >> $GITHUB_ENV
+          echo "CODEARTIFACT_MAVEN_URL=$REPO_URL" >> $GITHUB_ENV
+
+          # Optionally expose for debug (only URL) - commented out by default
+          # echo "CODEARTIFACT_MAVEN_URL=$REPO_URL"
+
+      - name: Show effective Maven settings (sanitized)
+        if: always()
+        run: |
+          # show settings.xml but hide password line (safety)
+          sed -n '1,240p' ./settings.xml | sed '/password/ s/.*/  <password>***REDACTED***<\/password>/' || true
+
+      - name: Resolve Maven dependencies
+        run: mvn -B -Pdev -s ./settings.xml dependency:resolve -U
+
       - name: Build (maven package)
-        run: mvn -B -Pdev -s ~/.m2/settings.xml -DskipTests clean package
+        run: mvn -B -Pdev -s ./settings.xml -DskipTests clean package
 
-      # 7) Login to ECR & build image (copy produced JAR)
       - name: Login to Amazon ECR
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
@@ -73,3 +88,7 @@ jobs:
           tags: |
             ${{ steps.ecr-login.outputs.registry }}/acme-app-service:${{ github.sha }}
             ${{ steps.ecr-login.outputs.registry }}/acme-app-service:dev-latest
+
+      - name: Post-check - list pushed tags
+        run: |
+          echo "Image pushed to: ${{ steps.ecr-login.outputs.registry }}/acme-app-service"
