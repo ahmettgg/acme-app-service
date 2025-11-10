@@ -1,0 +1,37 @@
+name: Build ACME App
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: eu-west-1
+      REPO_NAME: acme-maven-dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get CodeArtifact Token & Endpoint
+        run: |
+          echo CODEARTIFACT_MAVEN_URL=$(aws codeartifact get-repository-endpoint \
+            --domain acme-domain \
+            --repository ${REPO_NAME} \
+            --format maven \
+            --query repositoryEndpoint --output text) >> $GITHUB_ENV
+
+          echo CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token \
+            --domain acme-domain \
+            --region ${AWS_REGION} \
+            --query authorizationToken --output text) >> $GITHUB_ENV
+
+      - name: Build
+        run: mvn -B -Pdev -s settings.xml clean package -DskipTests
