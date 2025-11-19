@@ -4,7 +4,7 @@ FROM amazoncorretto:21-alpine-jdk AS runtime
 WORKDIR /app
 COPY target/*.jar /app/app.jar
 
-# optionally set JVM options via env var
+# optionally set JVM options via env vara
 ENV JAVA_OPTS=""
 
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]
