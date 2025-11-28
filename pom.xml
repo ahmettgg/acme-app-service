@@ -66,16 +66,16 @@
       <repositories>
         <repository>
           <id>codeartifact</id>
-          <url>https://device-park-638946561387.d.codeartifact.eu-west-1.amazonaws.com/maven/acme-maven-dev/</url>
-          <releases><enabled>true</enabled></releases>
-          <snapshots><enabled>true</enabled></snapshots>
+          <url>https://acme-domain-638946561387.d.codeartifact.eu-west-1.amazonaws.com/maven/acme-maven-dev/</url>
+          <!-- <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>true</enabled></snapshots> -->
         </repository>
       </repositories>
 
       <pluginRepositories>
         <pluginRepository>
           <id>codeartifact</id>
-          <url>https://device-park-638946561387.d.codeartifact.eu-west-1.amazonaws.com/maven/acme-maven-dev/</url>
+          <url>https://acme-domain-638946561387.d.codeartifact.eu-west-1.amazonaws.com/maven/acme-maven-dev/</url>
         </pluginRepository>
       </pluginRepositories>
     </profile>
@@ -85,16 +85,16 @@
       <repositories>
       <repository>
           <id>codeartifact</id>
-          <url>https://device-park-638946561387.d.codeartifact.eu-west-1.amazonaws.com/maven/acme-maven-dev/</url>
-          <releases><enabled>true</enabled></releases>
-          <snapshots><enabled>false</enabled></snapshots>
+          <url>https://acme-domain-638946561387.d.codeartifact.eu-west-1.amazonaws.com/maven/acme-maven-dev/</url>
+          <!-- <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>false</enabled></snapshots> -->
         </repository>
       </repositories>
 
       <pluginRepositories>
         <pluginRepository>
           <id>codeartifact</id>
-          <url>https://device-park-638946561387.d.codeartifact.eu-west-1.amazonaws.com/maven/acme-maven-dev/</url>
+          <url>https://acme-domain-638946561387.d.codeartifact.eu-west-1.amazonaws.com/maven/acme-maven-dev/</url>
         </pluginRepository>
       </pluginRepositories>
     </profile>
