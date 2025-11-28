@@ -82,6 +82,7 @@
 
     <profile>
       <id>prod</id>
+      <repositories>
       <repository>
           <id>codeartifact</id>
           <url>https://device-park-638946561387.d.codeartifact.eu-west-1.amazonaws.com/maven/acme-maven-dev/</url>
