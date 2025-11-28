@@ -67,8 +67,8 @@
         <repository>
           <id>codeartifact</id>
           <url>https://device-park-638946561387.d.codeartifact.eu-west-1.amazonaws.com/maven/acme-maven-dev/</url>
-          <!-- <releases><enabled>true</enabled></releases>
-          <snapshots><enabled>true</enabled></snapshots> -->
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>true</enabled></snapshots>
         </repository>
       </repositories>
 
@@ -86,8 +86,8 @@
       <repository>
           <id>codeartifact</id>
           <url>https://device-park-638946561387.d.codeartifact.eu-west-1.amazonaws.com/maven/acme-maven-dev/</url>
-          <!-- <releases><enabled>true</enabled></releases>
-          <snapshots><enabled>false</enabled></snapshots> -->
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>false</enabled></snapshots>
         </repository>
       </repositories>
 
