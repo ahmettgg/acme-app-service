@@ -1,0 +1,76 @@
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### Maven Ext ###
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+### Java Artifacts ###
+*.class
+*.jar
+*.war
+*.ear
+
+### Spring Boot Local Config (asla commit edilmemeli) ###
+application-local.yml
+application-local.properties
+application-*.local.yml
+application-*.local.properties
+
+### Logs ###
+*.log
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+
+### STS / Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+### OS files ###
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Desktop.ini
+.directory
+.Trash-*
+
+### Temporary ###
+*.bak
+*.swp
+*.swo
+*~
+.localhistory
+.recommenders
+
+### Docker ###
+*.tar

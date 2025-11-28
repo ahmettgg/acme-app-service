@@ -10,6 +10,7 @@ env:
   CODEARTIFACT_DOMAIN: acme-domain
   CODEARTIFACT_REPOSITORY: acme-maven-dev
   ECR_REPOSITORY: 638946561387.dkr.ecr.eu-west-1.amazonaws.com/acme-app-service
+  AWS_ACCOUNT_ID: 638946561387
 
 permissions:
   contents: read
@@ -23,14 +24,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Cache Maven local repo
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -38,42 +31,52 @@ jobs:
           aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Get CodeArtifact auth token and Maven repo endpoint
-        id: codeartifact-info
-        shell: bash
+      # - name: Get CodeArtifact auth token and Maven repo endpoint
+      #   id: codeartifact-info
+      #   shell: bash
+      #   run: |
+      #     set -euo pipefail
+
+      #     echo "Getting CodeArtifact auth token (will NOT be printed)..."
+      #     AUTH_TOKEN=$(aws codeartifact get-authorization-token \
+      #       --domain "${CODEARTIFACT_DOMAIN}" \
+      #       --query authorizationToken --output text --region "${AWS_REGION}")
+
+      #     echo "Getting CodeArtifact maven repository endpoint..."
+      #     REPO_URL=$(aws codeartifact get-repository-endpoint \
+      #       --domain "${CODEARTIFACT_DOMAIN}" \
+      #       --repository "${CODEARTIFACT_REPOSITORY}" \
+      #       --format maven \
+      #       --query repositoryEndpoint --output text --region "${AWS_REGION}")
+
+      #     # Export to subsequent steps (do not echo token)
+      #     echo "CODEARTIFACT_AUTH_TOKEN=$AUTH_TOKEN" >> $GITHUB_ENV
+      #     echo "CODEARTIFACT_MAVEN_URL=$REPO_URL" >> $GITHUB_ENV
+
+      #     # Optionally expose for debug (only URL) - commented out by default
+      #     # echo "CODEARTIFACT_MAVEN_URL=$REPO_URL"
+
+      # - name: Show effective Maven settings (sanitized)
+      #   if: always()
+      #   run: |
+      #     # show settings.xml but hide password line (safety)
+      #     sed -n '1,240p' ./settings.xml | sed '/password/ s/.*/  <password>***REDACTED***<\/password>/' || true
+
+      # - name: Resolve Maven dependencies
+      #   run: mvn -B -Pdev -s ./settings.xml dependency:resolve -U
+
+      # - name: Build (maven package)
+      #   run: mvn -B -Pdev -s ./settings.xml -DskipTests clean package
+
+      - name: Get CodeArtifact auth token (DEV)
+        id: token
         run: |
-          set -euo pipefail
-
-          echo "Getting CodeArtifact auth token (will NOT be printed)..."
-          AUTH_TOKEN=$(aws codeartifact get-authorization-token \
-            --domain "${CODEARTIFACT_DOMAIN}" \
-            --query authorizationToken --output text --region "${AWS_REGION}")
-
-          echo "Getting CodeArtifact maven repository endpoint..."
-          REPO_URL=$(aws codeartifact get-repository-endpoint \
-            --domain "${CODEARTIFACT_DOMAIN}" \
-            --repository "${CODEARTIFACT_REPOSITORY}" \
-            --format maven \
-            --query repositoryEndpoint --output text --region "${AWS_REGION}")
-
-          # Export to subsequent steps (do not echo token)
-          echo "CODEARTIFACT_AUTH_TOKEN=$AUTH_TOKEN" >> $GITHUB_ENV
-          echo "CODEARTIFACT_MAVEN_URL=$REPO_URL" >> $GITHUB_ENV
-
-          # Optionally expose for debug (only URL) - commented out by default
-          # echo "CODEARTIFACT_MAVEN_URL=$REPO_URL"
-
-      - name: Show effective Maven settings (sanitized)
-        if: always()
-        run: |
-          # show settings.xml but hide password line (safety)
-          sed -n '1,240p' ./settings.xml | sed '/password/ s/.*/  <password>***REDACTED***<\/password>/' || true
-
-      - name: Resolve Maven dependencies
-        run: mvn -B -Pdev -s ./settings.xml dependency:resolve -U
-
-      - name: Build (maven package)
-        run: mvn -B -Pdev -s ./settings.xml -DskipTests clean package
+          TOKEN=$(aws codeartifact get-authorization-token \
+            --domain ${CODEARTIFACT_DOMAIN} \
+            --domain-owner ${AWS_ACCOUNT_ID} \
+            --region ${AWS_REGION} \
+            --query authorizationToken --output text)
+          echo "CODEARTIFACT_AUTH_TOKEN=$TOKEN" >> $GITHUB_ENV
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -95,6 +98,9 @@ jobs:
           tags: |
             ${{ steps.ecr-login.outputs.registry }}/acme-app-service:${{ github.sha }}
             ${{ steps.ecr-login.outputs.registry }}/acme-app-service:dev-latest
+          build-args: |
+            CODEARTIFACT_AUTH_TOKEN=${{ env.CODEARTIFACT_AUTH_TOKEN }}
+            MAVEN_PROFILE=dev
 
       - name: Post-check - list pushed tags
         run: |

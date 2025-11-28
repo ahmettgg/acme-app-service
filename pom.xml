@@ -26,6 +26,8 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <acme-shared-client.release.version>1.0.0</acme-shared-client.release.version>
+    <acme-shared-client.version>${acme-shared-client.release.version}</acme-shared-client.version>
   </properties>
 
   <dependencies>
@@ -39,7 +41,7 @@
     <dependency>
       <groupId>com.acme</groupId>
       <artifactId>acme-shared-client</artifactId>
-      <version>1.0.0-dev-SNAPSHOT</version>
+      <version>${acme-shared-client.version}</version>
     </dependency>
 
     <!-- test scope örneği -->
@@ -54,42 +56,44 @@
   <profiles>
     <profile>
       <id>dev</id>
-      <activation>
+      <!-- <activation>
         <activeByDefault>true</activeByDefault>
-      </activation>
+      </activation> -->
+      <properties>
+        <acme-shared-client.version>${acme-shared-client.release.version}-SNAPSHOT</acme-shared-client.version>
+      </properties>
 
       <repositories>
         <repository>
           <id>codeartifact</id>
-          <url>${env.CODEARTIFACT_MAVEN_URL}</url>
-          <releases><enabled>true</enabled></releases>
-          <snapshots><enabled>true</enabled></snapshots>
+          <url>https://device-park-638946561387.d.codeartifact.eu-west-1.amazonaws.com/maven/acme-maven-dev/</url>
+          <!-- <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>true</enabled></snapshots> -->
         </repository>
       </repositories>
 
       <pluginRepositories>
         <pluginRepository>
           <id>codeartifact</id>
-          <url>${env.CODEARTIFACT_MAVEN_URL}</url>
+          <url>https://device-park-638946561387.d.codeartifact.eu-west-1.amazonaws.com/maven/acme-maven-dev/</url>
         </pluginRepository>
       </pluginRepositories>
     </profile>
 
     <profile>
       <id>prod</id>
-      <repositories>
-        <repository>
+      <repository>
           <id>codeartifact</id>
-          <url>${env.CODEARTIFACT_MAVEN_URL}</url>
-          <releases><enabled>true</enabled></releases>
-          <snapshots><enabled>false</enabled></snapshots>
+          <url>https://device-park-638946561387.d.codeartifact.eu-west-1.amazonaws.com/maven/acme-maven-dev/</url>
+          <!-- <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>false</enabled></snapshots> -->
         </repository>
       </repositories>
 
       <pluginRepositories>
         <pluginRepository>
           <id>codeartifact</id>
-          <url>${env.CODEARTIFACT_MAVEN_URL}</url>
+          <url>https://device-park-638946561387.d.codeartifact.eu-west-1.amazonaws.com/maven/acme-maven-dev/</url>
         </pluginRepository>
       </pluginRepositories>
     </profile>
