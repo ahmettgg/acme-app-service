@@ -15,7 +15,12 @@ ADD . /src
 # Set the working directory to /src
 WORKDIR /src
 # Build the application
-RUN mvn -B -s /root/.m2/settings.xml clean package -DskipTests -P${MAVEN_PROFILE}
+RUN echo "Effective MAVEN_PROFILE=${MAVEN_PROFILE}" && \
+    mvn -q -s /root/.m2/settings.xml help:active-profiles -P${MAVEN_PROFILE} && \
+    mvn -q -s /root/.m2/settings.xml dependency:tree \
+      -Dincludes=com.acme:acme-shared-client \
+      -P${MAVEN_PROFILE} && \
+    mvn -B -s /root/.m2/settings.xml clean package -DskipTests -P${MAVEN_PROFILE}
 
 # runtime image - small and secure
 FROM amazoncorretto:21-alpine-jdk AS runtime
