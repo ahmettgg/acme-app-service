@@ -59,7 +59,7 @@
       <!-- <activation>
         <activeByDefault>true</activeByDefault>
       <!-- </activation> -->
-      <properties> -->
+     <!-- <properties> -->
        <!-- <acme-shared-client.version>${acme-shared-client.release.version}-SNAPSHOT</acme-shared-client.version> -->
       <!-- </properties> -->
 
