@@ -26,8 +26,10 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-   <!-- <acme-shared-client.release.version>2.0.0</acme-shared-client.release.version> -->
-    <!-- <acme-shared-client.version>${acme-shared-client.release.version}</acme-shared-client.version> -->
+    <!--
+    <acme-shared-client.release.version>2.0.0</acme-shared-client.release.version>
+    <acme-shared-client.version>${acme-shared-client.release.version}</acme-shared-client.version>
+    -->
   </properties>
 
   <dependencies>
@@ -56,19 +58,27 @@
   <profiles>
     <profile>
       <id>dev</id>
-      <!-- <activation>
+
+      <!--
+      <activation>
         <activeByDefault>true</activeByDefault>
-      <!-- </activation> -->
-     <!-- <properties> -->
-       <!-- <acme-shared-client.version>${acme-shared-client.release.version}-SNAPSHOT</acme-shared-client.version> -->
-      <!-- </properties> -->
+      </activation>
+
+      <properties>
+        <acme-shared-client.version>
+          ${acme-shared-client.release.version}-SNAPSHOT
+        </acme-shared-client.version>
+      </properties>
+      -->
 
       <repositories>
         <repository>
           <id>codeartifact</id>
           <url>https://acme-domain-638946561387.d.codeartifact.eu-west-1.amazonaws.com/maven/acme-maven-dev/</url>
-          <!-- <releases><enabled>true</enabled></releases>
-          <snapshots><enabled>true</enabled></snapshots> -->
+          <!--
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>true</enabled></snapshots>
+          -->
         </repository>
       </repositories>
 
@@ -82,12 +92,15 @@
 
     <profile>
       <id>prod</id>
+
       <repositories>
-      <repository>
+        <repository>
           <id>codeartifact</id>
           <url>https://acme-domain-638946561387.d.codeartifact.eu-west-1.amazonaws.com/maven/acme-maven-dev/</url>
-          <!-- <releases><enabled>true</enabled></releases>
-          <snapshots><enabled>false</enabled></snapshots> -->
+          <!--
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>false</enabled></snapshots>
+          -->
         </repository>
       </repositories>
 
