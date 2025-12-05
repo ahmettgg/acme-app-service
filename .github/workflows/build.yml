@@ -103,6 +103,6 @@ jobs:
             MAVEN_PROFILE=dev
             USE_MVN_USE_RELEASES=false
 
-      - name: Post-check - list pushed tags
+      - name: Post-check - list pushed tags # comment
         run: |
           echo "Image pushed to: ${{ steps.ecr-login.outputs.registry }}/acme-app-service"
